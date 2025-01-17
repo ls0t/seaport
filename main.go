@@ -4,27 +4,31 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/autobrr/go-qbittorrent"
-	natpmp "github.com/jackpal/go-nat-pmp"
+	"github.com/ls0t/seeport/sources"
 )
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGKILL)
 	defer stop()
 
-	gatewayIP := net.ParseIP("10.2.0.1")
 	port := 0
+	var err error
 	ticker := time.NewTicker(45 * time.Second)
 	defer ticker.Stop()
 
+	source, err := sources.GetSource("protonvpn", nil)
+	if err != nil {
+		log.Fatalf("creating source failed: %v", err)
+	}
+
 	for {
-		port = tick(ctx, gatewayIP, port)
+		port = tick(ctx, source, port)
 
 		select {
 		case <-ticker.C:
@@ -36,8 +40,8 @@ func main() {
 	}
 }
 
-func tick(ctx context.Context, gatewayIP net.IP, oldPort int) int {
-	externalIP, newPort, err := getExternalPort(gatewayIP)
+func tick(ctx context.Context, source sources.Source, oldPort int) int {
+	externalIP, newPort, err := source.Get()
 	if err != nil {
 		log.Printf("error: %v", err)
 		return oldPort
@@ -53,30 +57,6 @@ func tick(ctx context.Context, gatewayIP net.IP, oldPort int) int {
 		log.Printf("updated qbittorrent to %s:%d", externalIP, newPort)
 	}
 	return oldPort
-}
-
-func getExternalPort(gatewayIP net.IP) (net.IP, int, error) {
-	client := natpmp.NewClient(gatewayIP)
-
-	portResponse, err := client.AddPortMapping("tcp", 0, 1, 60)
-	if err != nil {
-		return nil, 0, fmt.Errorf("error getting tcp port mapping: %w", err)
-	}
-	externalPort := int(portResponse.MappedExternalPort)
-
-	portResponse, err = client.AddPortMapping("udp", 0, externalPort, 60)
-	if err != nil {
-		return nil, 0, fmt.Errorf("error getting udp port mapping: %w", err)
-	}
-	externalPort = int(portResponse.MappedExternalPort)
-
-	addressResponse, err := client.GetExternalAddress()
-	if err != nil {
-		return nil, 0, fmt.Errorf("error getting external address: %w", err)
-	}
-
-	ip := net.IP(addressResponse.ExternalIPAddress[:])
-	return ip, externalPort, nil
 }
 
 func updateQbit(ctx context.Context, externalPort int) error {
