@@ -2,14 +2,13 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/autobrr/go-qbittorrent"
+	"github.com/ls0t/seeport/actions"
 	"github.com/ls0t/seeport/sources"
 )
 
@@ -27,8 +26,15 @@ func main() {
 		log.Fatalf("creating source failed: %v", err)
 	}
 
+	qbit := actions.NewQbittorrent(actions.QbittorrentConfig{
+		Host:     "http://localhost:8080",
+		Username: "admin",
+		Password: "adminadmin",
+	})
+	actions := []actions.Action{qbit}
+
 	for {
-		port = tick(ctx, source, port)
+		port = tick(ctx, source, actions, port)
 
 		select {
 		case <-ticker.C:
@@ -40,7 +46,7 @@ func main() {
 	}
 }
 
-func tick(ctx context.Context, source sources.Source, oldPort int) int {
+func tick(ctx context.Context, source sources.Source, actions []actions.Action, oldPort int) int {
 	externalIP, newPort, err := source.Get()
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -48,33 +54,16 @@ func tick(ctx context.Context, source sources.Source, oldPort int) int {
 	}
 	if newPort != oldPort {
 		log.Printf("updating from port %d to %d", oldPort, newPort)
-		err = updateQbit(ctx, newPort)
-		if err != nil {
-			log.Printf("error updating qbittorrent: %v", err)
-			return oldPort
+		for _, action := range actions {
+			err = action.Act(ctx, externalIP, newPort)
+			if err != nil {
+				log.Printf("error updating qbittorrent: %v", err)
+				return oldPort
+			}
 		}
+
 		oldPort = newPort
 		log.Printf("updated qbittorrent to %s:%d", externalIP, newPort)
 	}
 	return oldPort
-}
-
-func updateQbit(ctx context.Context, externalPort int) error {
-	qbitClient := qbittorrent.NewClient(qbittorrent.Config{
-		Host:     "http://localhost:8080",
-		Username: "admin",
-		Password: "adminadmin",
-	})
-
-	err := qbitClient.LoginCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("could not log into client: %w", err)
-	}
-
-	m := map[string]any{"listen_port": externalPort, "random_port": "false", "upnp": "false"}
-	err = qbitClient.SetPreferencesCtx(ctx, m)
-	if err != nil {
-		return fmt.Errorf("couldn't update qbittorrent settings: %w", err)
-	}
-	return nil
 }
