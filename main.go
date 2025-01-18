@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"log"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/ls0t/seeport/actions"
+	"github.com/ls0t/seeport/notifiers"
 	"github.com/ls0t/seeport/sources"
 )
 
@@ -16,6 +18,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGKILL)
 	defer stop()
 
+	var ip net.IP
 	port := 0
 	var err error
 	ticker := time.NewTicker(45 * time.Second)
@@ -33,8 +36,14 @@ func main() {
 	})
 	actions := []actions.Action{qbit}
 
+	discord, err := notifiers.NewDiscord(os.Getenv("SEEPORT_DISCORD_WEBHOOK"))
+	if err != nil {
+		log.Fatalf("creating notifier failed: %v", err)
+	}
+	notifiers := []notifiers.Notifier{discord}
+
 	for {
-		port = tick(ctx, source, actions, port)
+		ip, port = tick(ctx, source, actions, notifiers, ip, port)
 
 		select {
 		case <-ticker.C:
@@ -46,24 +55,39 @@ func main() {
 	}
 }
 
-func tick(ctx context.Context, source sources.Source, actions []actions.Action, oldPort int) int {
-	externalIP, newPort, err := source.Get()
+func tick(ctx context.Context, source sources.Source, actions []actions.Action, toNotify []notifiers.Notifier, oldIP net.IP, oldPort int) (net.IP, int) {
+	newIP, newPort, err := source.Get()
 	if err != nil {
 		log.Printf("error: %v", err)
-		return oldPort
+		return oldIP, oldPort
 	}
 	if newPort != oldPort {
 		log.Printf("updating from port %d to %d", oldPort, newPort)
+		var results []notifiers.Result
 		for _, action := range actions {
-			err = action.Act(ctx, externalIP, newPort)
+			err = action.Act(ctx, newIP, newPort)
+			results = append(results, notifiers.Result{
+				OldIP:   oldIP,
+				OldPort: oldPort,
+				NewIP:   newIP,
+				NewPort: newPort,
+				Err:     err,
+			})
 			if err != nil {
-				log.Printf("error updating qbittorrent: %v", err)
-				return oldPort
+				log.Printf("error performing action: %v", err)
 			}
 		}
 
-		oldPort = newPort
-		log.Printf("updated qbittorrent to %s:%d", externalIP, newPort)
+		log.Printf("updated to %s:%d", newIP, newPort)
+		for _, notifier := range toNotify {
+			for _, result := range results {
+				err = notifier.Notify(ctx, result)
+				if err != nil {
+					log.Printf("error notifying: %v", err)
+				}
+			}
+		}
 	}
-	return oldPort
+
+	return newIP, newPort
 }
