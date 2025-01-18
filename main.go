@@ -9,9 +9,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ls0t/seeport/actions"
-	"github.com/ls0t/seeport/notifiers"
-	"github.com/ls0t/seeport/sources"
+	"github.com/ls0t/seeport/action"
+	"github.com/ls0t/seeport/notify"
+	"github.com/ls0t/seeport/source"
 )
 
 func main() {
@@ -24,23 +24,23 @@ func main() {
 	ticker := time.NewTicker(45 * time.Second)
 	defer ticker.Stop()
 
-	source, err := sources.GetSource("protonvpn", nil)
+	source, err := source.GetSource("protonvpn", nil)
 	if err != nil {
 		log.Fatalf("creating source failed: %v", err)
 	}
 
-	qbit := actions.NewQbittorrent(actions.QbittorrentConfig{
+	qbit := action.NewQbittorrent(action.QbittorrentConfig{
 		Host:     "http://localhost:8080",
 		Username: "admin",
 		Password: "adminadmin",
 	})
-	actions := []actions.Action{qbit}
+	actions := []action.Action{qbit}
 
-	discord, err := notifiers.NewDiscord(os.Getenv("SEEPORT_DISCORD_WEBHOOK"))
+	discord, err := notify.NewDiscord(os.Getenv("SEEPORT_DISCORD_WEBHOOK"))
 	if err != nil {
 		log.Fatalf("creating notifier failed: %v", err)
 	}
-	notifiers := []notifiers.Notifier{discord}
+	notifiers := []notify.Notifier{discord}
 
 	for {
 		ip, port = tick(ctx, source, actions, notifiers, ip, port)
@@ -55,7 +55,7 @@ func main() {
 	}
 }
 
-func tick(ctx context.Context, source sources.Source, actions []actions.Action, toNotify []notifiers.Notifier, oldIP net.IP, oldPort int) (net.IP, int) {
+func tick(ctx context.Context, source source.Source, actions []action.Action, notifiers []notify.Notifier, oldIP net.IP, oldPort int) (net.IP, int) {
 	newIP, newPort, err := source.Get()
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -63,10 +63,10 @@ func tick(ctx context.Context, source sources.Source, actions []actions.Action, 
 	}
 	if newPort != oldPort {
 		log.Printf("updating from port %d to %d", oldPort, newPort)
-		var results []notifiers.Result
+		var results []notify.Result
 		for _, action := range actions {
 			err = action.Act(ctx, newIP, newPort)
-			results = append(results, notifiers.Result{
+			results = append(results, notify.Result{
 				OldIP:   oldIP,
 				OldPort: oldPort,
 				NewIP:   newIP,
@@ -79,7 +79,7 @@ func tick(ctx context.Context, source sources.Source, actions []actions.Action, 
 		}
 
 		log.Printf("updated to %s:%d", newIP, newPort)
-		for _, notifier := range toNotify {
+		for _, notifier := range notifiers {
 			for _, result := range results {
 				err = notifier.Notify(ctx, result)
 				if err != nil {

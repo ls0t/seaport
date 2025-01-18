@@ -1,4 +1,4 @@
-package actions
+package action
 
 import (
 	"context"
@@ -7,12 +7,6 @@ import (
 
 	"github.com/autobrr/go-qbittorrent"
 )
-
-/*
-	host:     "http://localhost:8080",
-	username: "admin",
-	password: "adminadmin",
-*/
 
 type QbittorrentConfig struct {
 	Host     string
