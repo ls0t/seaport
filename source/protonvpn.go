@@ -7,8 +7,8 @@ type ProtonVPN struct {
 }
 
 func NewProtonVPN() (Source, error) {
-	gatewayIP := net.ParseIP("10.2.0.1")
-	natPMPSource, err := NewNatPMP(gatewayIP)
+	options := map[string]string{"gatewayIP": "10.2.0.1"}
+	natPMPSource, err := NewNatPMP(options)
 	if err != nil {
 		return nil, err
 	}

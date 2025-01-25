@@ -7,7 +7,12 @@ import (
 	natpmp "github.com/jackpal/go-nat-pmp"
 )
 
-func NewNatPMP(gatewayIP net.IP) (Source, error) {
+func NewNatPMP(options map[string]string) (Source, error) {
+	gatewayIP := net.ParseIP(options["gatewayIP"])
+	if gatewayIP == nil {
+		return nil, fmt.Errorf("gatewayIP '%s' could not be parsed", options["gatewayIP"])
+	}
+
 	return &NatPMP{
 		gatewayIP: gatewayIP,
 	}, nil

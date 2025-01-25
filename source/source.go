@@ -5,16 +5,12 @@ import (
 	"net"
 )
 
-func Get(name string, config map[string]string) (Source, error) {
+func Get(name string, options map[string]string) (Source, error) {
 	switch name {
 	case "protonvpn":
 		return NewProtonVPN()
 	case "natpmp":
-		gatewayIP := net.ParseIP(config["gatewayIP"])
-		if gatewayIP == nil {
-			return nil, fmt.Errorf("gatewayIP '%s' could not be parsed", config["gatewayIP"])
-		}
-		return NewNatPMP(gatewayIP)
+		return NewNatPMP(options)
 	case "fake":
 		return &Fake{}, nil
 	default:
