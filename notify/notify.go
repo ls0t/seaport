@@ -2,8 +2,18 @@ package notify
 
 import (
 	"context"
+	"fmt"
 	"net"
 )
+
+func Get(name string, options map[string]string) (Notifier, error) {
+	switch name {
+	case "discord":
+		return NewDiscord(options)
+	default:
+		return nil, fmt.Errorf("unknown notifier: %v", name)
+	}
+}
 
 type Result struct {
 	OldIP   net.IP

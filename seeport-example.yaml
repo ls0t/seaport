@@ -1,0 +1,18 @@
+# specify a single source from which to allocate a port
+source:
+  name: "protonvpn"
+  # name: "natpmp"
+
+# specify one or more actions to perform when the port is updated. Typically will be your torrent client
+actions:
+  - name: qbittorrent
+    options:
+      # adjust the options here if you have changed the qbittorrent defaults
+      host: http://localhost:8080
+      username: admin
+      password: adminadmin
+
+# specify one or more notifiers. These send human-readable messages to services of your choice to inform you about the IP and port.
+notifiers:
+  - name: discord
+    webhook: <insert your webhook URL here like https://discord.com/api/webhooks/...>

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"net"
 	"os"
@@ -10,11 +11,22 @@ import (
 	"time"
 
 	"github.com/ls0t/seeport/action"
+	"github.com/ls0t/seeport/config"
 	"github.com/ls0t/seeport/notify"
 	"github.com/ls0t/seeport/source"
 )
 
+var (
+	configFilenameArg string
+)
+
+func init() {
+	flag.StringVar(&configFilenameArg, "config", "seeport.yaml", "yaml config file")
+}
+
 func main() {
+	flag.Parse()
+
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGKILL)
 	defer stop()
 
@@ -24,23 +36,39 @@ func main() {
 	ticker := time.NewTicker(45 * time.Second)
 	defer ticker.Stop()
 
-	source, err := source.GetSource("protonvpn", nil)
+	f, err := os.Open(configFilenameArg)
+	if err != nil {
+		log.Fatalf("reading config file failed: %v", err)
+	}
+	defer f.Close()
+
+	c, err := config.FromReader(f)
+	if err != nil {
+		log.Fatalf("parsing config failed: %v", err)
+	}
+
+	source, err := source.Get(c.Source.Name, c.Source.Options)
 	if err != nil {
 		log.Fatalf("creating source failed: %v", err)
 	}
 
-	qbit := action.NewQbittorrent(action.QbittorrentConfig{
-		Host:     "http://localhost:8080",
-		Username: "admin",
-		Password: "adminadmin",
-	})
-	actions := []action.Action{qbit}
-
-	discord, err := notify.NewDiscord(os.Getenv("SEEPORT_DISCORD_WEBHOOK"))
-	if err != nil {
-		log.Fatalf("creating notifier failed: %v", err)
+	actions := []action.Action{}
+	for _, act := range c.Actions {
+		a, err := action.Get(act.Name, act.Options)
+		if err != nil {
+			log.Fatalf("creating action failed: %v", err)
+		}
+		actions = append(actions, a)
 	}
-	notifiers := []notify.Notifier{discord}
+
+	notifiers := []notify.Notifier{}
+	for _, not := range c.Notifiers {
+		n, err := notify.Get(not.Name, not.Options)
+		if err != nil {
+			log.Fatalf("creating notifier failed: %v", err)
+		}
+		notifiers = append(notifiers, n)
+	}
 
 	for {
 		ip, port = tick(ctx, source, actions, notifiers, ip, port)

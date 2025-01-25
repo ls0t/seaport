@@ -5,7 +5,7 @@ import (
 	"net"
 )
 
-func GetSource(name string, config map[string]string) (Source, error) {
+func Get(name string, config map[string]string) (Source, error) {
 	switch name {
 	case "protonvpn":
 		return NewProtonVPN()

@@ -11,7 +11,8 @@ type Discord struct {
 	client wh.Client
 }
 
-func NewDiscord(webhook string) (Notifier, error) {
+func NewDiscord(options map[string]string) (Notifier, error) {
+	webhook := options["webhook"]
 	client, err := wh.NewWithURL(webhook)
 	if err != nil {
 		return nil, err

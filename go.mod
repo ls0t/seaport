@@ -5,6 +5,7 @@ go 1.22.2
 require (
 	github.com/autobrr/go-qbittorrent v1.11.0
 	github.com/disgoorg/disgo v0.18.14
+	github.com/goccy/go-yaml v1.15.15
 	github.com/jackpal/go-nat-pmp v1.0.2
 )
 

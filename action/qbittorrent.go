@@ -18,11 +18,11 @@ type Qbittorrent struct {
 	client *qbittorrent.Client
 }
 
-func NewQbittorrent(config QbittorrentConfig) Action {
+func NewQbittorrent(options map[string]string) Action {
 	client := qbittorrent.NewClient(qbittorrent.Config{
-		Host:     config.Host,
-		Username: config.Username,
-		Password: config.Password,
+		Host:     options["host"],
+		Username: options["username"],
+		Password: options["password"],
 	})
 	return &Qbittorrent{
 		client: client,
