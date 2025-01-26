@@ -1,4 +1,4 @@
-module github.com/ls0t/seeport
+module github.com/ls0t/seaport
 
 go 1.22.2
 

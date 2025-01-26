@@ -10,10 +10,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ls0t/seeport/action"
-	"github.com/ls0t/seeport/config"
-	"github.com/ls0t/seeport/notify"
-	"github.com/ls0t/seeport/source"
+	"github.com/ls0t/seaport/action"
+	"github.com/ls0t/seaport/config"
+	"github.com/ls0t/seaport/notify"
+	"github.com/ls0t/seaport/source"
 )
 
 var (
@@ -21,7 +21,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&configFilenameArg, "config", "seeport.yaml", "yaml config file")
+	flag.StringVar(&configFilenameArg, "config", "seaport.yaml", "yaml config file")
 }
 
 func main() {
