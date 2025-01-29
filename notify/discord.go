@@ -2,6 +2,8 @@ package notify
 
 import (
 	"context"
+	"os"
+	"strings"
 
 	"github.com/disgoorg/disgo/discord"
 	wh "github.com/disgoorg/disgo/webhook"
@@ -13,6 +15,10 @@ type Discord struct {
 
 func NewDiscord(options map[string]string) (Notifier, error) {
 	webhook := options["webhook"]
+	if strings.TrimSpace(webhook) == "" {
+		webhook = os.Getenv("SEAPORT_WEBHOOK_URL")
+	}
+
 	client, err := wh.NewWithURL(webhook)
 	if err != nil {
 		return nil, err
