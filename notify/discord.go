@@ -16,7 +16,7 @@ type Discord struct {
 func NewDiscord(options map[string]string) (Notifier, error) {
 	webhook := options["webhook"]
 	if strings.TrimSpace(webhook) == "" {
-		webhook = os.Getenv("SEAPORT_WEBHOOK_URL")
+		webhook = os.Getenv("SEAPORT_DISCORD_WEBHOOK")
 	}
 
 	client, err := wh.NewWithURL(webhook)
