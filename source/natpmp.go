@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net"
 	"strconv"
+	"time"
 
 	natpmp "github.com/jackpal/go-nat-pmp"
 )
@@ -40,12 +41,21 @@ func NewNatPMP(options map[string]string) (Source, error) {
 		}
 	}
 
+	var lifetime time.Duration = 60 * time.Second
+	if options["lifetime"] != "" {
+		lifetime, err = time.ParseDuration(options["lifetime"])
+		if err != nil {
+			return nil, fmt.Errorf("lifetime '%s' could not be parsed: %w", options["lifetime"], err)
+		}
+	}
+
 	return &NatPMP{
 		successfulRun: false,
 		gatewayIP:     gatewayIP,
 		externalPort:  externalPort,
 		internalPort:  internalPort,
 		randomPort:    randomPort,
+		lifetime:      lifetime,
 	}, nil
 }
 
@@ -55,6 +65,7 @@ type NatPMP struct {
 	internalPort  int
 	externalPort  int
 	randomPort    bool
+	lifetime      time.Duration
 }
 
 func (n *NatPMP) Get() (net.IP, int, error) {
@@ -66,19 +77,16 @@ func (n *NatPMP) Get() (net.IP, int, error) {
 			requestedExternalPort = rand.Intn(30000) + 30000
 			n.internalPort = requestedExternalPort
 		}
-
-		if n.internalPort == 0 {
-			n.internalPort = requestedExternalPort
-		}
 	}
 
-	portResponse, err := client.AddPortMapping("tcp", n.internalPort, requestedExternalPort, 60)
+	//fmt.Printf("requestedExternalPort = %v, n.internalPort = %v, lifetime=%s\n", requestedExternalPort, n.internalPort, n.lifetime)
+	portResponse, err := client.AddPortMapping("tcp", n.internalPort, requestedExternalPort, int(n.lifetime.Seconds()))
 	if err != nil {
 		return nil, 0, fmt.Errorf("error getting tcp port mapping: %w", err)
 	}
 	n.externalPort = int(portResponse.MappedExternalPort)
 
-	portResponse, err = client.AddPortMapping("udp", n.internalPort, n.externalPort, 60)
+	portResponse, err = client.AddPortMapping("udp", n.internalPort, n.externalPort, int(n.lifetime.Seconds()))
 	if err != nil {
 		return nil, 0, fmt.Errorf("error getting udp port mapping: %w", err)
 	}
