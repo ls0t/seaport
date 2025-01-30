@@ -1,7 +1,6 @@
 # specify a single source from which to allocate a port
 source:
   name: "protonvpn"
-  # name: "natpmp"
 
 # specify one or more actions to perform when the port is updated. Typically will be your torrent client
 actions:

@@ -31,6 +31,7 @@ actions:
 source:
   name: "natpmp"
   options:
+    # gatewayIP is where to send the nat-pmp request
     gatewayIP: <insert gateway>
 
 actions:
@@ -42,6 +43,11 @@ actions:
       password: adminadmin
 ```
 
+## Verification
+
+Once you have seaport running _and_ your service (web server, torrent client, game) is bound to the port, you can verify
+port-forwarding is working as expected by visiting a site like https://canyouseeme.org/ and inputting the IP+port.
+
 ## Releases
 
 Download the latest release from github releases.
@@ -50,7 +56,7 @@ Download the latest release from github releases.
 
 _Sources_ are where IP+port comes from for port forwarding. Usually from your infrastructure, like your router or VPN provider.
 
-_Actions_ are plugins that automatically configure external clients using programmatic means, like your torrent client. You need at least one action for seaport to be useful to you.
+_Actions_ are plugins that automatically configure external clients using programmatic means, like your torrent client. You may need at least one action for seaport to be useful to you.
 
 _Notifiers_ are optional ways to send human-readable updates.
 
@@ -79,7 +85,52 @@ source:
 source:
   name: natpmp
   options:
-    gatewayIP: <insert IP>
+    gatewayIP: <IP>
+
+    #####################
+    # optional attributes
+    #####################
+
+    # externalPort is the suggested external port to expose on the router. Per nat-pmp, the router may choose to return
+    # the suggested port or a different external port than the one requested.
+    # In some cases, non-compliant NAT-PMP implementations will fail if externalPort is zero.
+    externalPort: <int>
+
+    # internalPort maps the service directly to a static port bound on this node. Useful for docker containers hosting
+    # services that are not port-aware. May be left unspecified.
+    internalPort: <int>
+
+    # randomPort determines whether seaport itself generates a random port between 30000-60000 instead of relying on the router
+    # Default: false
+    randomPort: <boolean>
+
+    # lifetime specifies how long the port mapping should last.
+    # Default: 60s
+    # Should be a duration with a time suffix, like 60s, 1h, 1d
+    lifetime: <duration>
+```
+
+NAT-PMP servers frequently implement the spec wrong and behavior will vary.
+
+**Known working configs**
+
+Synology RT2600AC:
+```
+source:
+  name: natpmp
+  options:
+    gatewayIP: 192.168.1.1
+    randomPort: true
+```
+
+When requesting a specific port, note `internalPort` cannot be zero.
+```
+source:
+  name: natpmp
+  options:
+    gatewayIP: 192.168.1.1
+    externalPort: 1234
+    internalPort: 1234
 ```
 
 ### Actions
@@ -106,4 +157,4 @@ notifiers:
       webhook: <insert your webhook URL here like https://discord.com/api/webhooks/...>
 ```
 
-Alternatively you can specify the webhook by setting the environment variable `SEAPORT_WEBHOOK_URL`.
+Alternatively you can specify the webhook by setting the environment variable `SEAPORT_DISCORD_WEBHOOK`.
