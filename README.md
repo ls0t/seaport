@@ -46,7 +46,7 @@ actions:
 ## Verification
 
 Once you have seaport running _and_ your service (web server, torrent client, game) is bound to the port, you can verify
-port-forwarding is working as expected by visiting a site like https://canyouseeme.org/ and inputting the IP+port.
+port forwarding is working as expected by visiting a site like https://canyouseeme.org/ and inputting the IP+port.
 
 ## Releases
 
@@ -123,7 +123,8 @@ source:
     randomPort: true
 ```
 
-When requesting a specific port, note `internalPort` cannot be zero.
+When requesting a specific port, note that the Synology incorrectly requires the `internalPort` not be zero.
+
 ```
 source:
   name: natpmp
