@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"net"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"syscall"
 	"time"
 
@@ -18,14 +20,26 @@ import (
 
 var (
 	configFilenameArg string
+	displayVersionArg bool
 )
 
 func init() {
 	flag.StringVar(&configFilenameArg, "config", "seaport.yaml", "yaml config file")
+	flag.BoolVar(&displayVersionArg, "v", false, "print version")
 }
 
 func main() {
 	flag.Parse()
+
+	if displayVersionArg {
+		info, ok := debug.ReadBuildInfo()
+		if ok {
+			fmt.Println(info.Main.Version)
+		} else {
+			fmt.Println("dev")
+		}
+		return
+	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGKILL)
 	defer stop()
