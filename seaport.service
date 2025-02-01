@@ -1,0 +1,10 @@
+[Unit]
+Description=port forwarding from https://github.com/ls0t/seaport
+
+[Service]
+ExecStart=/usr/local/bin/seaport -config /etc/seaport/seaport.yaml
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=network-online.target
