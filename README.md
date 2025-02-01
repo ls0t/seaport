@@ -43,10 +43,50 @@ actions:
       password: adminadmin
 ```
 
+## Building
+
+In order to build, you'll need to install packages.
+
+Ubuntu
+```
+sudo apt install make golang-go
+```
+
+and build
+
+```
+go build
+```
+
+Assuming your `seaport.yaml` is ready, start the service.
+
+```
+./seaport -config seaport.yaml
+```
+
 ## Verification
 
 Once you have seaport running _and_ your service (web server, torrent client, game) is bound to the port, you can verify
 port forwarding is working as expected by visiting a site like https://canyouseeme.org/ and inputting the IP+port.
+
+## Installation
+
+If the service is working as expected, you can run the make target `setup` to perform all install steps. Seaport will begin running now and will start on boot.
+
+* Build the binary
+* Install to /usr/local/bin/seaport
+* Create /etc/seaport/seaport.yaml (copied from your current working directory)
+* Create a systemd unit, enable at boot, and start it
+
+```
+sudo make setup
+```
+
+To verify operation, check the output of
+
+```
+sudo systemctl status seaport
+```
 
 ## Releases
 

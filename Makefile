@@ -15,3 +15,5 @@ systemd:
 	systemctl daemon-reload
 	systemctl enable seaport
 	systemctl start seaport
+
+setup: install config systemd
