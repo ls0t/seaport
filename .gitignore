@@ -1,4 +1,6 @@
 seaport
 seaport.yaml
+seaport-*.yaml
+.vscode
 # Added by goreleaser init:
 dist/
