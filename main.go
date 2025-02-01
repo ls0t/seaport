@@ -8,7 +8,6 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"runtime/debug"
 	"syscall"
 	"time"
 
@@ -21,6 +20,7 @@ import (
 var (
 	configFilenameArg string
 	displayVersionArg bool
+	version           = "dev" // populated from build flags
 )
 
 func init() {
@@ -32,12 +32,7 @@ func main() {
 	flag.Parse()
 
 	if displayVersionArg {
-		info, ok := debug.ReadBuildInfo()
-		if ok {
-			fmt.Println(info.Main.Version)
-		} else {
-			fmt.Println("dev")
-		}
+		fmt.Println(version)
 		return
 	}
 
