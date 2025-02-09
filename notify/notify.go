@@ -25,4 +25,5 @@ type Result struct {
 
 type Notifier interface {
 	Notify(ctx context.Context, result Result) error
+	Name() string
 }

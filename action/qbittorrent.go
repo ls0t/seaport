@@ -42,3 +42,7 @@ func (q *Qbittorrent) Act(ctx context.Context, ip net.IP, port int) error {
 	}
 	return nil
 }
+
+func (q *Qbittorrent) Name() string {
+	return "qbittorrent"
+}

@@ -44,3 +44,7 @@ func (d *Discord) Notify(ctx context.Context, result Result) error {
 	_, err := d.client.CreateMessage(msg)
 	return err
 }
+
+func (d *Discord) Name() string {
+	return "discord"
+}

@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"log/slog"
 	"net"
 	"os"
 	"os/signal"
@@ -30,6 +31,8 @@ func init() {
 
 func main() {
 	flag.Parse()
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
 
 	if displayVersionArg {
 		fmt.Println(version)
@@ -86,7 +89,7 @@ func main() {
 		case <-ticker.C:
 			continue
 		case <-ctx.Done():
-			log.Print("exiting")
+			slog.Info("exiting")
 			return
 		}
 	}
@@ -95,11 +98,15 @@ func main() {
 func tick(ctx context.Context, source source.Source, actions []action.Action, notifiers []notify.Notifier, oldIP net.IP, oldPort int) (net.IP, int) {
 	newIP, newPort, err := source.Get()
 	if err != nil {
-		log.Printf("error: %v", err)
+		slog.Error("getting from source", "err", err)
 		return oldIP, oldPort
 	}
 	if newPort != oldPort {
-		log.Printf("updating from port %d to %d", oldPort, newPort)
+		if oldPort == 0 {
+			slog.Info("setting port", "port", newPort)
+		} else {
+			slog.Info("port change", "oldPort", oldPort, "newPort", newPort)
+		}
 		var results []notify.Result
 		for _, action := range actions {
 			err = action.Act(ctx, newIP, newPort)
@@ -111,16 +118,16 @@ func tick(ctx context.Context, source source.Source, actions []action.Action, no
 				Err:     err,
 			})
 			if err != nil {
-				log.Printf("error performing action: %v", err)
+				slog.Error("performing action", "name", action.Name(), "err", err)
 			}
 		}
 
-		log.Printf("updated to %s:%d", newIP, newPort)
+		slog.Info("latest endpoint", "IP", newIP, "port", newPort)
 		for _, notifier := range notifiers {
 			for _, result := range results {
 				err = notifier.Notify(ctx, result)
 				if err != nil {
-					log.Printf("error notifying: %v", err)
+					slog.Error("performing notify", "name", notifier.Name(), "err", err)
 				}
 			}
 		}

@@ -17,4 +17,5 @@ func Get(name string, options map[string]string) (Action, error) {
 
 type Action interface {
 	Act(ctx context.Context, ip net.IP, port int) error
+	Name() string
 }
