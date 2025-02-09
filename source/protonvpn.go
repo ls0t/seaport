@@ -1,13 +1,16 @@
 package source
 
-import "net"
+import (
+	"net"
+	"time"
+)
 
 type ProtonVPN struct {
 	natPMPSource Source
 }
 
 func NewProtonVPN() (Source, error) {
-	options := map[string]string{"gatewayIP": "10.2.0.1", "externalPort": "1"}
+	options := map[string]string{"gatewayIP": "10.2.0.1", "externalPort": "1", "lifetime": "60s"}
 	natPMPSource, err := NewNatPMP(options)
 	if err != nil {
 		return nil, err
@@ -17,4 +20,8 @@ func NewProtonVPN() (Source, error) {
 
 func (p *ProtonVPN) Get() (net.IP, int, error) {
 	return p.natPMPSource.Get()
+}
+
+func (p *ProtonVPN) Refresh() time.Duration {
+	return 45 * time.Second
 }

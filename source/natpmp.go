@@ -41,7 +41,8 @@ func NewNatPMP(options map[string]string) (Source, error) {
 		}
 	}
 
-	var lifetime time.Duration = 60 * time.Second
+	// default lifetime should be 2 hours per RFC6886
+	var lifetime time.Duration = 2 * time.Hour
 	if options["lifetime"] != "" {
 		lifetime, err = time.ParseDuration(options["lifetime"])
 		if err != nil {
@@ -103,4 +104,9 @@ func (n *NatPMP) Get() (net.IP, int, error) {
 	n.successfulRun = true
 
 	return ip, n.externalPort, nil
+}
+
+func (n *NatPMP) Refresh() time.Duration {
+	// per RFC6886, refresh should begin halfway through the lifetime
+	return n.lifetime / 2
 }

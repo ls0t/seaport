@@ -54,17 +54,6 @@ func main() {
 		log.Fatalf("parsing config failed: %v", err)
 	}
 
-	// default lifetime should be 2 hours per RFC6886
-	lifetime := time.Duration(2 * time.Hour)
-	if c.Source.Options["lifetime"] != "" {
-		lifetime, err = time.ParseDuration(c.Source.Options["lifetime"])
-		if err != nil {
-			log.Fatalf("parsing lifetime failed: %v", err)
-		}
-	}
-	// per RFC6886, refresh should begin halfway through the lifetime
-	refresh := lifetime / 2
-
 	source, err := source.Get(c.Source.Name, c.Source.Options)
 	if err != nil {
 		log.Fatalf("creating source failed: %v", err)
@@ -88,7 +77,7 @@ func main() {
 		notifiers = append(notifiers, n)
 	}
 
-	ticker := time.NewTicker(refresh)
+	ticker := time.NewTicker(source.Refresh())
 	defer ticker.Stop()
 	for {
 		ip, port = tick(ctx, source, actions, notifiers, ip, port)
