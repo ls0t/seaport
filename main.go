@@ -21,17 +21,26 @@ import (
 var (
 	configFilenameArg string
 	displayVersionArg bool
+	debugArg          bool
 	version           = "dev" // populated from build flags
 )
 
 func init() {
 	flag.StringVar(&configFilenameArg, "config", "seaport.yaml", "yaml config file")
 	flag.BoolVar(&displayVersionArg, "v", false, "print version")
+	flag.BoolVar(&debugArg, "debug", false, "debug logging")
 }
 
 func main() {
 	flag.Parse()
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	var loggingOpts *slog.HandlerOptions
+	if debugArg {
+		loggingOpts = &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		}
+	}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, loggingOpts))
 	slog.SetDefault(logger)
 
 	if displayVersionArg {
@@ -83,6 +92,7 @@ func main() {
 	ticker := time.NewTicker(source.Refresh())
 	defer ticker.Stop()
 	for {
+		slog.Debug("refreshing lease", "refresh", source.Refresh())
 		ip, port = tick(ctx, source, actions, notifiers, ip, port)
 
 		select {
@@ -103,7 +113,7 @@ func tick(ctx context.Context, source source.Source, actions []action.Action, no
 	}
 	if newPort != oldPort {
 		if oldPort == 0 {
-			slog.Info("setting port", "port", newPort)
+			slog.Info("initial port", "port", newPort)
 		} else {
 			slog.Info("port change", "oldPort", oldPort, "newPort", newPort)
 		}
@@ -122,7 +132,7 @@ func tick(ctx context.Context, source source.Source, actions []action.Action, no
 			}
 		}
 
-		slog.Info("latest endpoint", "IP", newIP, "port", newPort)
+		slog.Info("latest endpoint", "ip", newIP, "port", newPort)
 		for _, notifier := range notifiers {
 			for _, result := range results {
 				err = notifier.Notify(ctx, result)

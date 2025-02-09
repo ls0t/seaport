@@ -2,6 +2,7 @@ package source
 
 import (
 	"fmt"
+	"log/slog"
 	"math/rand"
 	"net"
 	"strconv"
@@ -80,13 +81,14 @@ func (n *NatPMP) Get() (net.IP, int, error) {
 		}
 	}
 
-	//fmt.Printf("requestedExternalPort = %v, n.internalPort = %v, lifetime=%s\n", requestedExternalPort, n.internalPort, n.lifetime)
+	slog.Debug("requesting tcp mapping", "requestedExternalPort", requestedExternalPort, "internalPort", n.internalPort, "lifetime", n.lifetime)
 	portResponse, err := client.AddPortMapping("tcp", n.internalPort, requestedExternalPort, int(n.lifetime.Seconds()))
 	if err != nil {
 		return nil, 0, fmt.Errorf("error getting tcp port mapping: %w", err)
 	}
 	n.externalPort = int(portResponse.MappedExternalPort)
 
+	slog.Debug("requesting udp mapping", "externalPort", n.externalPort, "internalPort", n.internalPort, "lifetime", n.lifetime)
 	portResponse, err = client.AddPortMapping("udp", n.internalPort, n.externalPort, int(n.lifetime.Seconds()))
 	if err != nil {
 		return nil, 0, fmt.Errorf("error getting udp port mapping: %w", err)
@@ -95,6 +97,7 @@ func (n *NatPMP) Get() (net.IP, int, error) {
 		return nil, 0, fmt.Errorf("port mismatch from nat-pmp server: got %d, expected %d", portResponse.MappedExternalPort, n.externalPort)
 	}
 
+	slog.Debug("requesting external address")
 	addressResponse, err := client.GetExternalAddress()
 	if err != nil {
 		return nil, 0, fmt.Errorf("error getting external address: %w", err)
