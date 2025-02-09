@@ -199,3 +199,12 @@ notifiers:
 ```
 
 Alternatively you can specify the webhook by setting the environment variable `SEAPORT_DISCORD_WEBHOOK`.
+
+## Feature Roadmap
+
+* Integration with other torrent clients like transmission and deluge
+* DDNS updater
+* SRV updates for hosting minecraft servers
+* Docker image
+* Homebrew install
+* PPA
