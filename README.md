@@ -175,8 +175,9 @@ source:
 ```
 
 ### Actions
+#### Torrent Clients
 
-#### qbittorrent
+##### qbittorrent
 
 ```yaml
 actions:
@@ -186,6 +187,33 @@ actions:
       username: admin
       password: adminadmin
 ```
+
+#### Dynamic DNS
+
+Dynamic DNS can be updated with the IP from the source. Note this IP normally comes from the source (e.g. NAT-PMP) and not an external IP service.
+
+##### duckdns
+
+www.duckdns.org
+```yaml
+actions:
+  - name: duckdns
+    options:
+      # domains is a comma-separated list of duckdns subnames
+      domains: <string>
+
+      # token is provided by the duckdns service
+      token: <string>
+
+      #####################
+      # optional attributes
+      #####################
+
+      # txt sets the TXT record value
+      txt: <string>
+```
+
+Instead of writing to the config file, `token` can optionally be provided by setting the environment variable `SEAPORT_DUCKDNS_TOKEN`.
 
 ### Notifiers
 

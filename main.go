@@ -117,6 +117,8 @@ func tick(ctx context.Context, source source.Source, actions []action.Action, no
 		} else {
 			slog.Info("port change", "oldPort", oldPort, "newPort", newPort)
 		}
+		slog.Info("latest endpoint", "ip", newIP, "port", newPort)
+
 		var results []notify.Result
 		for _, action := range actions {
 			err = action.Act(ctx, newIP, newPort)
@@ -130,9 +132,9 @@ func tick(ctx context.Context, source source.Source, actions []action.Action, no
 			if err != nil {
 				slog.Error("performing action", "name", action.Name(), "err", err)
 			}
+			slog.Info("action completed", "name", action.Name(), "err", err)
 		}
 
-		slog.Info("latest endpoint", "ip", newIP, "port", newPort)
 		for _, notifier := range notifiers {
 			for _, result := range results {
 				err = notifier.Notify(ctx, result)
