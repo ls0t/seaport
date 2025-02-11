@@ -12,41 +12,41 @@ import (
 	"strings"
 )
 
-type DuckDNS struct {
-	domains string
-	token   string
-	txt     string
+type FreeMyIP struct {
+	domain string
+	token  string
+	txt    string
 }
 
-func NewDuckDNS(options map[string]string) (Action, error) {
-	domains := options["domains"]
-	if strings.TrimSpace(domains) == "" {
-		return nil, errors.New("'domains' must not be empty")
+func NewFreeMyIP(options map[string]string) (Action, error) {
+	domain := options["domain"]
+	if strings.TrimSpace(domain) == "" {
+		return nil, errors.New("'domain' must not be empty")
 	}
 
 	token := options["token"]
 	if strings.TrimSpace(token) == "" {
-		token = os.Getenv("SEAPORT_DUCKDNS_TOKEN")
+		token = os.Getenv("SEAPORT_FREEMYIP_TOKEN")
 		if token == "" {
 			return nil, errors.New("'token' must not be empty")
 		}
 	}
 
-	txt := strings.TrimSpace(options["txt"])
-	return &DuckDNS{
-		domains: domains,
-		token:   token,
-		txt:     txt,
+	txt := options["txt"]
+	return &FreeMyIP{
+		domain: domain,
+		token:  token,
+		txt:    txt,
 	}, nil
 }
 
-func (d *DuckDNS) Act(ctx context.Context, ip net.IP, port int) error {
-	err := sendDuckDNSReq(ctx, ip, d.domains, d.token, "")
+func (f *FreeMyIP) Act(ctx context.Context, ip net.IP, port int) error {
+	err := sendFreeMyIPReq(ctx, ip, f.domain, f.token, "")
 	if err != nil {
 		return err
 	}
-	if d.txt != "" {
-		err = sendDuckDNSReq(ctx, ip, d.domains, d.token, d.txt)
+	if f.txt != "" {
+		err = sendFreeMyIPReq(ctx, ip, f.domain, f.token, f.txt)
 		if err != nil {
 			return err
 		}
@@ -54,15 +54,15 @@ func (d *DuckDNS) Act(ctx context.Context, ip net.IP, port int) error {
 	return nil
 }
 
-func sendDuckDNSReq(ctx context.Context, ip net.IP, domains string, token string, txt string) error {
+func sendFreeMyIPReq(ctx context.Context, ip net.IP, domain string, token string, txt string) error {
 	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodGet, "https://www.duckdns.org/update", nil)
+	req, err := http.NewRequest(http.MethodGet, "https://www.freemyip.com/update", nil)
 	if err != nil {
 		return fmt.Errorf("constructing http request: %w", err)
 	}
 
 	q := req.URL.Query()
-	q.Add("domains", domains)
+	q.Add("domain", domain)
 	q.Add("token", token)
 	if slog.Default().Enabled(ctx, slog.LevelDebug) {
 		q.Add("verbose", "true")
@@ -70,10 +70,10 @@ func sendDuckDNSReq(ctx context.Context, ip net.IP, domains string, token string
 	if txt != "" {
 		q.Add("txt", txt)
 	} else {
-		q.Add("ip", ip.String())
+		q.Add("myip", ip.String())
 	}
 	req.URL.RawQuery = q.Encode()
-	slog.Debug("duckdns query", "query", req.URL.RawQuery)
+	slog.Debug("freemyip query", "query", req.URL.RawQuery)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -87,8 +87,8 @@ func sendDuckDNSReq(ctx context.Context, ip net.IP, domains string, token string
 		return fmt.Errorf("reading http body: %w", err)
 	}
 
-	slog.Debug("duckdns response", "body", buf[0:n])
-	if bytes.Equal(buf[0:2], []byte("KO")) {
+	slog.Debug("freemyip response", "body", buf[0:n])
+	if bytes.Equal(buf[0:5], []byte("ERROR")) {
 		return fmt.Errorf("unsuccessful update: %s", buf[0:n])
 	} else if !bytes.Equal(buf[0:2], []byte("OK")) {
 		return fmt.Errorf("unknown response: %s", buf[0:n])
@@ -97,6 +97,6 @@ func sendDuckDNSReq(ctx context.Context, ip net.IP, domains string, token string
 	return nil
 }
 
-func (d *DuckDNS) Name() string {
-	return "duckdns"
+func (f *FreeMyIP) Name() string {
+	return "freemyip"
 }

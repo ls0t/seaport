@@ -202,7 +202,7 @@ actions:
       # domains is a comma-separated list of duckdns subnames
       domains: <string>
 
-      # token is provided by the duckdns service
+      # token is provided by the duckdns service. Alternatively, set the environment variable SEAPORT_DUCKDNS_TOKEN.
       token: <string>
 
       #####################
@@ -213,7 +213,26 @@ actions:
       txt: <string>
 ```
 
-Instead of writing to the config file, `token` can optionally be provided by setting the environment variable `SEAPORT_DUCKDNS_TOKEN`.
+##### freemyip
+
+freemyip.com
+```yaml
+actions:
+  - name: freemyip
+    options:
+      # domain is a fully qualified freemyip.com subdomain
+      domain: <string>
+
+      # token is provided by the freemyip service. Alternatively, set the environment variable SEAPORT_FREEMYIP_TOKEN.
+      token: <string>
+
+      #####################
+      # optional attributes
+      #####################
+
+      # txt sets the TXT record value
+      txt: <string>
+```
 
 ### Notifiers
 

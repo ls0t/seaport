@@ -12,6 +12,8 @@ func Get(name string, options map[string]string) (Action, error) {
 		return NewQbittorrent(options), nil
 	case "duckdns":
 		return NewDuckDNS(options)
+	case "freemyip":
+		return NewFreeMyIP(options)
 	default:
 		return nil, fmt.Errorf("unknown action: %s", name)
 	}
