@@ -4,25 +4,24 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/autobrr/go-qbittorrent"
 )
-
-type QbittorrentConfig struct {
-	Host     string
-	Username string
-	Password string
-}
 
 type Qbittorrent struct {
 	client *qbittorrent.Client
 }
 
 func NewQbittorrent(options map[string]string) Action {
+	url := strings.TrimSpace(options["url"])
+	if url == "" {
+		url = "http://localhost:8080"
+	}
 	client := qbittorrent.NewClient(qbittorrent.Config{
-		Host:     options["host"],
-		Username: options["username"],
-		Password: options["password"],
+		Host:     url,
+		Username: strings.TrimSpace(options["username"]),
+		Password: strings.TrimSpace(options["password"]),
 	})
 	return &Qbittorrent{
 		client: client,

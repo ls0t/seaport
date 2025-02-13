@@ -182,9 +182,15 @@ source:
 actions:
   - name: qbittorrent
     options:
-      host: http://localhost:8080
-      username: admin
-      password: adminadmin
+      # url is the location of the web service.
+      # default: http://localhost:8080
+      url: <url>
+
+      # username is the username for the web service.
+      username: <string>
+
+      # password is the password for the web service.
+      password: <string>
 ```
 
 ##### transmission
@@ -195,7 +201,7 @@ actions:
     options:
       # url is the location of the web service
       # Default: http://localhost:9091
-      url: <string>
+      url: <url>
 
       # username for the web service
       # Optional
