@@ -7,6 +7,7 @@ require (
 	github.com/disgoorg/disgo v0.18.14
 	github.com/goccy/go-yaml v1.15.15
 	github.com/jackpal/go-nat-pmp v1.0.2
+	github.com/pborzenkov/go-transmission v0.2.0
 )
 
 require (

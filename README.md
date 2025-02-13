@@ -125,19 +125,18 @@ source:
 source:
   name: natpmp
   options:
+    # gatewayIP is the IP to send the natpmp request
     gatewayIP: <IP>
-
-    #####################
-    # optional attributes
-    #####################
 
     # externalPort is the suggested external port to expose on the router. Per nat-pmp, the router may choose to return
     # the suggested port or a different external port than the one requested.
     # In some cases, non-compliant NAT-PMP implementations will fail if externalPort is zero.
+    # Optional
     externalPort: <int>
 
     # internalPort maps the service directly to a static port bound on this node. Useful for docker containers hosting
     # services that are not port-aware. May be left unspecified.
+    # Optional
     internalPort: <int>
 
     # randomPort determines whether seaport itself generates a random port between 30000-60000 instead of relying on the router
@@ -188,6 +187,25 @@ actions:
       password: adminadmin
 ```
 
+##### transmission
+
+```yaml
+actions:
+  - name: transmission
+    options:
+      # url is the location of the web service
+      # Default: http://localhost:9091
+      url: <string>
+
+      # username for the web service
+      # Optional
+      username: <string>
+
+      # password for the web service
+      # Optional
+      password: <string>>
+```
+
 #### Dynamic DNS
 
 Dynamic DNS can be updated with the IP from the source. Note this IP normally comes from the source (e.g. NAT-PMP) and not an external IP service.
@@ -205,11 +223,8 @@ actions:
       # token is provided by the duckdns service. Alternatively, set the environment variable SEAPORT_DUCKDNS_TOKEN.
       token: <string>
 
-      #####################
-      # optional attributes
-      #####################
-
       # txt sets the TXT record value
+      # Optional
       txt: <string>
 ```
 
@@ -226,11 +241,8 @@ actions:
       # token is provided by the freemyip service. Alternatively, set the environment variable SEAPORT_FREEMYIP_TOKEN.
       token: <string>
 
-      #####################
-      # optional attributes
-      #####################
-
       # txt sets the TXT record value
+      # Optional
       txt: <string>
 ```
 
@@ -242,15 +254,14 @@ actions:
 notifiers:
   - name: discord
     options:
-      webhook: <insert your webhook URL here like https://discord.com/api/webhooks/...>
+      # webhook is the discord webhook like https://discord.com/api/webhooks/...
+      # Alternatively, set the environment variable SEAPORT_DISCORD_WEBHOOK.
+      webhook: <string>
 ```
-
-Alternatively you can specify the webhook by setting the environment variable `SEAPORT_DISCORD_WEBHOOK`.
 
 ## Feature Roadmap
 
-* Integration with other torrent clients like transmission and deluge
-* DDNS updater
+* Integration with other torrent clients like deluge
 * SRV updates for hosting minecraft servers
 * Docker image
 * Homebrew install

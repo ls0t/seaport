@@ -14,6 +14,8 @@ func Get(name string, options map[string]string) (Action, error) {
 		return NewDuckDNS(options)
 	case "freemyip":
 		return NewFreeMyIP(options)
+	case "transmission":
+		return NewTransmission(options)
 	default:
 		return nil, fmt.Errorf("unknown action: %s", name)
 	}
