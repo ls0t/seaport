@@ -20,7 +20,7 @@ actions:
   - name: qbittorrent
     options:
       # adjust the options here if you have changed the qbittorrent defaults
-      host: http://localhost:8080
+      url: http://localhost:8080
       username: admin
       password: adminadmin
 ```
@@ -38,7 +38,7 @@ actions:
   - name: qbittorrent
     options:
       # adjust the options here if you have changed the qbittorrent defaults
-      host: http://localhost:8080
+      url: http://localhost:8080
       username: admin
       password: adminadmin
 ```
@@ -183,7 +183,7 @@ actions:
   - name: qbittorrent
     options:
       # url is the location of the web service.
-      # default: http://localhost:8080
+      # Default: http://localhost:8080
       url: <url>
 
       # username is the username for the web service.
