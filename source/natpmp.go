@@ -71,7 +71,7 @@ type NatPMP struct {
 }
 
 func (n *NatPMP) Get() (net.IP, int, error) {
-	client := natpmp.NewClient(n.gatewayIP)
+	client := natpmp.NewClientWithTimeout(n.gatewayIP, 60*time.Second)
 
 	requestedExternalPort := n.externalPort
 	if !n.successfulRun {
