@@ -93,7 +93,7 @@ func main() {
 	defer ticker.Stop()
 	for {
 		slog.Debug("refreshing lease", "refresh", source.Refresh())
-		ip, port = tick(ctx, source, actions, notifiers, ip, port)
+		ip, port, err = tick(ctx, source, actions, notifiers, ip, port, err)
 
 		select {
 		case <-ticker.C:
@@ -105,16 +105,19 @@ func main() {
 	}
 }
 
-func tick(ctx context.Context, source source.Source, actions []action.Action, notifiers []notify.Notifier, oldIP net.IP, oldPort int) (net.IP, int) {
+func tick(ctx context.Context, source source.Source, actions []action.Action, notifiers []notify.Notifier, oldIP net.IP, oldPort int, oldErr error) (net.IP, int, error) {
+	var newErr error
+
 	newIP, newPort, err := source.Get()
 	if err != nil {
 		slog.Error("getting from source", "err", err)
-		return oldIP, oldPort
+		return oldIP, oldPort, err
 	}
-	if newPort != oldPort {
+
+	if newPort != oldPort || oldErr != nil {
 		if oldPort == 0 {
 			slog.Info("initial port", "port", newPort)
-		} else {
+		} else if oldErr == nil {
 			slog.Info("port change", "oldPort", oldPort, "newPort", newPort)
 		}
 		slog.Info("latest endpoint", "ip", newIP, "port", newPort)
@@ -130,9 +133,11 @@ func tick(ctx context.Context, source source.Source, actions []action.Action, no
 				Err:     err,
 			})
 			if err != nil {
+				newErr = err
 				slog.Error("performing action", "name", action.Name(), "err", err)
+			} else {
+				slog.Info("action completed", "name", action.Name(), "err", err)
 			}
-			slog.Info("action completed", "name", action.Name(), "err", err)
 		}
 
 		for _, notifier := range notifiers {
@@ -145,5 +150,5 @@ func tick(ctx context.Context, source source.Source, actions []action.Action, no
 		}
 	}
 
-	return newIP, newPort
+	return newIP, newPort, newErr
 }
