@@ -1,6 +1,7 @@
 module github.com/ls0t/seaport
 
 go 1.22.2
+toolchain go1.24.1
 
 require (
 	github.com/autobrr/go-qbittorrent v1.11.0
@@ -17,5 +18,5 @@ require (
 	github.com/disgoorg/snowflake/v2 v2.0.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sasha-s/go-csync v0.0.0-20240107134140-fcbab37b09ad // indirect
-	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
 )
