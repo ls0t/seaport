@@ -12,6 +12,8 @@ func Get(name string, options map[string]string) (Source, error) {
 		return NewProtonVPN()
 	case "natpmp":
 		return NewNatPMP(options)
+	case "gluetun":
+		return NewGluetun(options)
 	case "fake":
 		return &Fake{}, nil
 	default:

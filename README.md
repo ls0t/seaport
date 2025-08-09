@@ -173,6 +173,42 @@ source:
     internalPort: 1234
 ```
 
+#### gluetun
+
+gluetun a VPN-in-a-container solution that can establish port-forwards upon connection. seaport can gather
+the port and public IP from gluetun's API and perform actions or notifications.
+
+Note: gluetun's API requires (configuration)[https://github.com/qdm12/gluetun-wiki/blob/main/setup/advanced/control-server.md#authentication]. Use this config snippet to allow seaport to contact gluetun's API:
+
+```toml
+[[roles]]
+name = "seaport"
+routes = ["GET /v1/openvpn/portforwarded", "GET /v1/publicip/ip"]
+auth = "none"
+```
+
+If the gluetun API is exposed outside of the container, `basic` or `apikey` authentication is recommended.
+
+```yaml
+source:
+  name: gluetun
+  options:
+    # url pointing to the gluetun API. If running inside the gluetun container network, use http://localhost:8000
+    url: <url>
+
+    # auth is the authentication type. Valid values are "none", "basic", "apikey". If blank, "none" is assumed.
+    auth: <string>
+
+    # username is used for basic authentication and should match the gluetun username
+    username: <string>
+
+    # password is used for basic authentication and should match the gluetun password
+    password: <string>
+
+    # apikey is used for apikey authentication and should match the gluetun apikey
+    apikey: <string>
+```
+
 ### Actions
 #### Torrent Clients
 
@@ -209,7 +245,7 @@ actions:
 
       # password for the web service
       # Optional
-      password: <string>>
+      password: <string>
 ```
 
 #### Dynamic DNS
