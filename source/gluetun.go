@@ -70,7 +70,7 @@ func (g *Gluetun) doReq(path string) (response, error) {
 
 	req, err := http.NewRequest("GET", g.url.String()+path, nil)
 	if err != nil {
-		return response{}, fmt.Errorf("building IP HTTP request: %w", err)
+		return response{}, fmt.Errorf("building HTTP request: %w", err)
 	}
 
 	switch g.authMethod {
