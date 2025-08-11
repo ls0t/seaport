@@ -6,7 +6,86 @@ Seaport sets up port forwarding to allow directly reaching services, whether tha
 
 Seaport is modular. If you know of an environment that seaport should support, please file a ticket or submit a PR.
 
-## Quick Start
+## Quick Start using gluetun + qbittorrent
+
+To deploy with gluetun + qbittorrent with port forwarding on protonvpn,
+try the docker compose below. You'll need a `seaport.yaml` and `config.yaml`
+in the same directory.
+
+seaport.yaml:
+```yaml
+source:
+  name: gluetun
+  options:
+    url: http://localhost:8000
+    auth: apikey
+    apikey: yourapikey
+
+actions:
+  - name: qbittorrent
+    options:
+      url: http://localhost:8080
+      username: yourusername
+      password: yourpassword
+```
+
+config.toml (for gluetun):
+```toml
+[[roles]]
+name = "seaport"
+routes = ["GET /v1/openvpn/portforwarded", "GET /v1/publicip/ip"]
+auth = "apikey"
+apikey = "yourapikey"
+```
+
+docker-compose.yml:
+```
+services:
+  gluetun:
+    container_name: gluetun
+    image: qmcgaw/gluetun:latest
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_PORT_FORWARDING=on
+      - PORT_FORWARD_ONLY=on
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=<yourprivatekey>
+    ports:
+      - 8080:8080
+    volumes:
+      - ./config.toml:/gluetun/auth/config.toml
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    network_mode: service:gluetun
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - WEBUI_PORT=8080
+    restart: unless-stopped
+    volumes:
+      - ./downloads:/downloads
+      - ./config:/config
+  seaport:
+    image: ghcr.io/ls0t/seaport:latest
+    container_name: seaport
+    network_mode: service:gluetun
+    restart: unless-stopped
+    volumes:
+      - ./seaport.yaml:/app/seaport.yaml
+```
+
+Seaport will fail updating the forwarded port on first startup because it can't access the
+qbittorrent API. To fix, log into qbittorrent and either change to a known password
+or choose the 'Bypass authentication on localhost' option. Then restart the docker compose stack.
+Once authentication is set up, seaport will update qbittorrent with the port from gluetun
+about 30 seconds after startup.
+
+## Manual setup
 
 First create your config file and save it as *seaport.yaml*. Then copy/paste one config block example below.
 
